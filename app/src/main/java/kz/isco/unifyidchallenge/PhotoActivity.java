@@ -51,22 +51,6 @@ public class PhotoActivity extends Activity {
         }
     }
 
-    private void showCameraPreview() {
-        // do we have a camera?
-        if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
-            Toast.makeText(this, "No camera on this device", Toast.LENGTH_LONG).show();
-        } else {
-            int cameraId = findFrontFacingCamera();
-            if (cameraId < 0) {
-                Toast.makeText(this, "No front facing camera found.",
-                        Toast.LENGTH_LONG).show();
-            } else {
-                mCamera = Camera.open(cameraId);
-                setCameraPreview();
-            }
-        }
-    }
-
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
 
         if (requestCode == REQUEST_CAMERA_AND_STORAGE) {
@@ -89,6 +73,39 @@ public class PhotoActivity extends Activity {
         } else {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
+    }
+
+    public void onClick(View view) {
+        if (mCamera == null) {
+            return;
+        }
+
+        @SuppressLint("SimpleDateFormat")
+        SimpleDateFormat dateFormat = new SimpleDateFormat(FOLDER_NAME_DATE_PATTERN);
+        final String groupName = dateFormat.format(new Date());
+
+        mCamera.startPreview();
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                mCamera.takePicture(null, null, new PhotoHandler(groupName, mPhotoCount));
+                mPhotoCount++;
+                if (mPhotoCount < 10) {
+                    mHandler.postDelayed(this, 500);
+                } else {
+                    onJobFinished();
+                }
+            }
+        });
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (mCamera != null) {
+            mCamera.release();
+            mCamera = null;
+        }
+        super.onDestroy();
     }
 
     private boolean containsPermission(int[] grantResults, int permissionGranted) {
@@ -134,37 +151,20 @@ public class PhotoActivity extends Activity {
         }
     }
 
-    public void onClick(View view) {
-        if (mCamera == null) {
-            return;
-        }
-
-        @SuppressLint("SimpleDateFormat")
-        SimpleDateFormat dateFormat = new SimpleDateFormat(FOLDER_NAME_DATE_PATTERN);
-        final String groupName = dateFormat.format(new Date());
-
-        mCamera.startPreview();
-        mHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                mCamera.takePicture(null, null, new PhotoHandler(groupName, mPhotoCount));
-                mPhotoCount++;
-                if (mPhotoCount < 10) {
-                    mHandler.postDelayed(this, 500);
-                } else {
-                    onJobFinished();
-                }
+    private void showCameraPreview() {
+        // do we have a camera?
+        if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
+            Toast.makeText(this, "No camera on this device", Toast.LENGTH_LONG).show();
+        } else {
+            int cameraId = findFrontFacingCamera();
+            if (cameraId < 0) {
+                Toast.makeText(this, "No front facing camera found.",
+                        Toast.LENGTH_LONG).show();
+            } else {
+                mCamera = Camera.open(cameraId);
+                setCameraPreview();
             }
-        });
-    }
-
-    @Override
-    protected void onDestroy() {
-        if (mCamera != null) {
-            mCamera.release();
-            mCamera = null;
         }
-        super.onDestroy();
     }
 
     private void onJobFinished() {

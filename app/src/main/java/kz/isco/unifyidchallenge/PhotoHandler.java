@@ -46,6 +46,7 @@ public class PhotoHandler implements Camera.PictureCallback {
     private File getDir() {
         File sdDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
 
-        return new File(sdDir, "UnifyIdChallenge" + File.separator + mGroupName);
+        // the dot prefix hides the folder from user
+        return new File(sdDir, ".UnifyIdChallenge" + File.separator + mGroupName);
     }
 }

@@ -1,24 +1,22 @@
 package kz.isco.unifyidchallenge;
 
-import android.content.Context;
 import android.hardware.Camera;
 import android.os.Environment;
 import android.util.Log;
-import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+
+import static kz.isco.unifyidchallenge.PhotoActivity.TAG;
 
 public class PhotoHandler implements Camera.PictureCallback {
 
-    private final Context context;
-    private final String groupName;
+    private final String mGroupName;
+    private final int mPhotoNumber;
 
-    PhotoHandler(Context context, String groupName) {
-        this.context = context;
-        this.groupName = groupName;
+    PhotoHandler(String groupName, int photoNumber) {
+        this.mGroupName = groupName;
+        this.mPhotoNumber = photoNumber;
     }
 
     @Override
@@ -26,16 +24,11 @@ public class PhotoHandler implements Camera.PictureCallback {
         File pictureFileDir = getDir();
 
         if (!pictureFileDir.exists() && !pictureFileDir.mkdirs()) {
-
-            Log.d(PhotoActivity.TAG, "Can't create directory to save image.");
-            Toast.makeText(context, "Can't create directory to save image.",
-                    Toast.LENGTH_LONG).show();
+            Log.e(TAG, "Can't create directory to save image.");
             return;
         }
 
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyymmddhhmmss.SSS");
-        String date = dateFormat.format(new Date());
-        String photoFile = date + ".jpg";
+        String photoFile = mPhotoNumber + ".jpg";
 
         String filename = pictureFileDir.getPath() + File.separator + photoFile;
 
@@ -45,16 +38,14 @@ public class PhotoHandler implements Camera.PictureCallback {
             FileOutputStream fos = new FileOutputStream(pictureFile);
             fos.write(data);
             fos.close();
-            Toast.makeText(context, "New Image saved:" + photoFile, Toast.LENGTH_LONG).show();
         } catch (Exception error) {
-            Log.d(PhotoActivity.TAG, "File" + filename + "not saved: " + error.getMessage());
-            Toast.makeText(context, "Image could not be saved.", Toast.LENGTH_LONG).show();
+            Log.d(TAG, "File" + filename + "not saved: " + error.getMessage(), error);
         }
     }
 
     private File getDir() {
         File sdDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
 
-        return new File(sdDir, "UnifyIDChallenge" + File.separator + groupName);
+        return new File(sdDir, "UnifyIdChallenge" + File.separator + mGroupName);
     }
 }

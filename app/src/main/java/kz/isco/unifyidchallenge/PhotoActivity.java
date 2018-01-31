@@ -1,5 +1,6 @@
 package kz.isco.unifyidchallenge;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
@@ -11,8 +12,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class PhotoActivity extends Activity {
     public final static String TAG = PhotoActivity.class.getSimpleName();
+
+    private static final String FOLDER_NAME_DATE_PATTERN = "yyyymmdd_hhmmss.SSS";
 
     private Camera mCamera;
     @NonNull
@@ -54,13 +60,15 @@ public class PhotoActivity extends Activity {
             return;
         }
 
-        final String groupName = "Group 1";
+        @SuppressLint("SimpleDateFormat")
+        SimpleDateFormat dateFormat = new SimpleDateFormat(FOLDER_NAME_DATE_PATTERN);
+        final String groupName = dateFormat.format(new Date());
 
         mCamera.startPreview();
         mHandler.post(new Runnable() {
             @Override
             public void run() {
-                mCamera.takePicture(null, null, new PhotoHandler(getApplicationContext(), groupName));
+                mCamera.takePicture(null, null, new PhotoHandler(groupName, mPhotoCount));
                 mPhotoCount++;
                 if (mPhotoCount < 10) {
                     mHandler.postDelayed(this, 500);
@@ -69,6 +77,15 @@ public class PhotoActivity extends Activity {
                 }
             }
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (mCamera != null) {
+            mCamera.release();
+            mCamera = null;
+        }
+        super.onDestroy();
     }
 
     private void onJobFinished() {
@@ -90,14 +107,4 @@ public class PhotoActivity extends Activity {
         }
         return cameraId;
     }
-
-    @Override
-    protected void onDestroy() {
-        if (mCamera != null) {
-            mCamera.release();
-            mCamera = null;
-        }
-        super.onDestroy();
-    }
-
 }

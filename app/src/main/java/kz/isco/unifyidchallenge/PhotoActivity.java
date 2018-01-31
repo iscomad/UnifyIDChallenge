@@ -75,7 +75,7 @@ public class PhotoActivity extends Activity {
         }
     }
 
-    public void onClick(View view) {
+    private void takeTheShots() {
         if (mCamera == null) {
             return;
         }
@@ -163,6 +163,8 @@ public class PhotoActivity extends Activity {
             } else {
                 mCamera = Camera.open(cameraId);
                 setCameraPreview();
+
+                takeTheShots();
             }
         }
     }
